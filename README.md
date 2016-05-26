@@ -34,3 +34,4 @@ IFD:Exif
 # Reference
 
 - http://dsas.blog.klab.org/archives/52123322.html
+- http://www.vieas.com/exif23.html

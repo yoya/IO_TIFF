@@ -39,7 +39,7 @@ class IO_Exif {
         $bit->setByteOrder($this->byteOrder);
         $tiffVersion = $bit->getSHORT();
         if ($tiffVersion !== 0x002A) {
-            throw new Exception("Unknown tiff version:0x".dechex($tiffVersion));
+            throw new Exception("Unknown TIFF version:0x".dechex($tiffVersion));
         }
         $this->IFDs = array();
         $IFD0thOffset = $bit->getLONG();
@@ -50,6 +50,7 @@ class IO_Exif {
             $ifdTable = IO_Exif_IFD::Factory($bit, self::IFD_OFFSET_BASE + $IFD1thOffset, "1th");
             $this->IFDs += $ifdTable;
         }
+        IO_Exif_IFD::sortIFDsByBaseOffset($this->IFDs);
     }
     function build() {
         ;

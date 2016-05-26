@@ -15,9 +15,24 @@ class IO_Exif_Bit extends IO_Bit {
         list($byteOffset, $bitOffset) = $this->getOffset();
         return $byteOffset;
     }
-    function setByteOffset($offset) {
-        $this->setOffset($offset, 0);
+    function setByteOffset($offset, $writeMode = false) {
+        if ($writeMode === false) { // read mode
+            $this->setOffset($offset, 0);
+        } else {
+            $byteOffset = $this->getByteOffset();
+            $dataSize = strlen($this->_data);
+            if ($offset < $byteOffset) {
+                throw new Exception("setByteOffset: offset:$offset < byteOffset:$byteOffset");
+            }
+            if ($dataSize < $offset) {
+                $this->setOffset($dataSize, 0);
+                $this->putData(str_repeat(" ", $offset - $dataSize));
+            }
+        }
     }
+    /*
+     * get function
+     */
     // type:1
     function getBYTE() {
         return $this->getUI8();
@@ -41,7 +56,7 @@ class IO_Exif_Bit extends IO_Bit {
         return $this->getUI32LE();
     }
     // type:5
-    function getRATIONAL($len) {
+    function getRATIONAL() {
         if ($this->byteOrder === 1) {
             $numer = $this->getUI32BE();
             $denom = $this->getUI32BE();
@@ -63,7 +78,7 @@ class IO_Exif_Bit extends IO_Bit {
         return $this->getSI32LE();
     }
     // type:10
-    function getSRATIONAL($len) {
+    function getSRATIONAL() {
         if ($this->byteOrder === 1) {
             $numer = $this->getSI32BE();
             $denom = $this->getSI32BE();
@@ -72,5 +87,64 @@ class IO_Exif_Bit extends IO_Bit {
             $denom = $this->getSI32LE();
         }
         return [$numer, $denom];
+    }
+    /*
+     * put function
+     */
+    // type:1
+    function putBYTE($v) {
+        $this->putUI8($v);
+    }
+    // type:2
+    function putASCII($v, $len) {
+        $this->putData($v, $len);
+    }
+    // type:3
+    function putSHORT($v) {
+        if ($this->byteOrder === 1) {
+            $this->putUI16BE($v);
+        } else {
+            $this->putUI16LE($v);
+        }
+    }
+    // type:4
+    function putLONG($v) {
+        if ($this->byteOrder === 1) {
+            $this->putUI32BE($v);
+        } else {
+            $this->putUI32LE($v);
+        }
+    }
+    // type:5
+    function putRATIONAL($v) {
+        if ($this->byteOrder === 1) {
+            $this->putUI32BE($v[0]);
+            $this->putUI32BE($v[1]);
+        } else {
+            $this->putUI32LE($v[0]);
+            $this->putUI32LE($v[1]);
+        }
+    }
+    // type:7
+    function putUNDEFINED($v, $len) {
+        $this->putData($v, $len);
+    }
+    // type:9
+    function putSLONG($v) {
+        if ($this->byteOrder === 1) {
+            $this->putSI32BE($v);
+        } else {
+            $this->putSI32LE($v);
+        }
+    }
+    // type:10
+    function putSRATIONAL($v) {
+        if ($this->byteOrder === 1) {
+            $this->putSI32BE($v[0]);
+            $this->putSI32BE($v[1]);
+        } else {
+            $this->putSI32LE($v[0]);
+            $this->putSI32LE($v[1]);
+        }
     }
 }

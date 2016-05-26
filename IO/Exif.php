@@ -12,6 +12,7 @@ class IO_Exif {
     var $exifData = null;
     var $byteOrder = null; // 1:Big Endian(MM), 2:LittleEndian(II)
     var $IFDs = null;
+    var $IFDRemoveList = array();
     const IFD_OFFSET_BASE = 6;
     function parse($exifData) {
         $reader = new IO_Bit();
@@ -53,7 +54,24 @@ class IO_Exif {
         IO_Exif_IFD::sortIFDsByBaseOffset($this->IFDs);
     }
     function build() {
-        ;
+        $bit = new IO_Bit();
+        $bit->putData("Exif\0\0");
+        $bit->setByteOrder($this->byteOrder);
+        switch ($this->byteOrder) {
+        case 1: 
+            $byteOrderId = "MM";
+            break;
+        case 2: // II
+            $byteOrderId = "II";
+            break;
+        default:
+            throw new Exception("Unknown byte order: $byteOrderId");
+        }
+        $bit->putData($byteOrderId);
+        $bit->putSHORT(0x002A); // TIFF version
+        foreach ($this->IFDs as $ifd)  {
+            $ifd->build($bit);
+        }
     }
     function dump($opts = array()) {
         foreach ($this->IFDs as $ifdName => $offsetTable) {
@@ -61,6 +79,10 @@ class IO_Exif {
             $opts += ['indent' => 1];
             $offsetTable->dump($opts);
         }
+    }
+    function addIFDRemoveList(string $ifdName) {
+        assert(is_string($ifdName));
+        $IFDRemoveList [$ifdName] = true;
     }
 }
 

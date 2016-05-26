@@ -69,7 +69,13 @@ class IO_Exif_IFD {
         return $ifdList;
     }
     function build($bit) {
-        ;
+        $this->setByteOffset($this->baseOffset, true);
+        if ($modified === false) {
+            
+        }
+
+        foreach ($this->offsetTable as $offsetEntry) {
+        }
     }
     function dump($opts) {
         $indent = $opts['indent'];
@@ -90,5 +96,12 @@ class IO_Exif_IFD {
     }
     static function sortIFDsByBaseOffset(&$IFDs) {
         uasort($IFDs, "self::baseOffsetComp");
+    }
+    function moveOffset($offsetDelta) {
+        if ($offsetDelta != 0) {
+            $modified = true;
+        } else {
+            $this->offsetDelta = $offsetDelta;
+        }
     }
 }

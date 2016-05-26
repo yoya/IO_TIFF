@@ -14,20 +14,20 @@ class IO_Exif_IFD {
     var $baseSize = null;
     var $extendOffset = null;
     var $extendSize = null;
-    var $offsetTable = null;
+    var $tagTable = null;
     var $modified = false;
     var $offsetDelta = 0;
     static function Factory($bit, $baseOffset, $ifdName) {
         $ifd = new IO_Exif_IFD();
         $ifd->ifdName = $ifdName;
-        $additionalIFD = $ifd->makeOffsetTable($bit, $baseOffset);
+        $additionalIFD = $ifd->makeTagTable($bit, $baseOffset);
         return [$ifdName => $ifd] +  $additionalIFD;
     }
-    function makeOffsetTable($bit, $baseOffset) {
+    function makeTagTable($bit, $baseOffset) {
         $this->baseOffset = $baseOffset;
         $bit->setByteOffset($baseOffset);
         $nTags = $bit->getSHORT();
-        $offsetTable = array();
+        $tagTable = array();
         $IFDNameTable = IO_Exif_Tag::getIFDNameTable();
         $elementSizeTable = IO_Exif_Tag::getElementSizetable();
         for ($i = 0 ; $i < $nTags ; $i++) {
@@ -36,7 +36,7 @@ class IO_Exif_IFD {
             $tagCount = $bit->getLONG();
             $tagOffset = $bit->getLONG();
             // echo "tag: $tagNo $tagType $tagCount\n";
-            $offsetTable[$tagNo] = $tagOffset;
+            $tagTable[$tagNo] = $tagOffset;
             //
             $valueSize = $elementSizeTable[$tagType] * $tagCount;
             if (($valueSize > 4) && (isset($IFDNameTable[$tagNo]) === false)) {
@@ -55,9 +55,9 @@ class IO_Exif_IFD {
         $ifdList = array();
 
         foreach ($IFDNameTable as $tagNo => $tagName) {
-            if (! empty($offsetTable[$tagNo])) {
+            if (! empty($tagTable[$tagNo])) {
                 // echo "XXX: $tagName\n";
-                $tagOffset = $offsetTable[$tagNo];
+                $tagOffset = $tagTable[$tagNo];
                 if ($tagOffset > 0) {
                     $ifdList += IO_Exif_IFD::Factory($bit, self::IFD_OFFSET_BASE + $tagOffset, $tagName);
                 }
@@ -65,16 +65,16 @@ class IO_Exif_IFD {
         }
         $bit->setByteOffset($nextOffset); // offset restore
         $this->baseSize = $nextOffset - $baseOffset;
-        $this->offsetTable = $offsetTable;
+        $this->tagTable = $tagTable;
         return $ifdList;
     }
     function build($bit) {
         $this->setByteOffset($this->baseOffset, true);
         if ($modified === false) {
-            
+            ;
         }
 
-        foreach ($this->offsetTable as $offsetEntry) {
+        foreach ($this->tagTable as $offsetEntry) {
         }
     }
     function dump($opts) {
@@ -85,9 +85,8 @@ class IO_Exif_IFD {
         echo "BaseSize:".$this->baseSize.PHP_EOL;
         echo $indentSpace."ExtendOffset:".$this->extendOffset." ";
         echo "ExtendSize:".$this->extendSize.PHP_EOL;
-        echo $indentSpace."OffsetTable:(count=".count($this->offsetTable).")".PHP_EOL;
-        foreach ($this->offsetTable as $tagId => $tagOffset) {
-
+        echo $indentSpace."TagTable:(count=".count($this->tagTable).")".PHP_EOL;
+        foreach ($this->tagTable as $tagId => $tagOffset) {
             echo $indentSpace2;
             $tagIdHex = sprintf("0x%04X", $tagId);
             if (empty($opts['name'])) {

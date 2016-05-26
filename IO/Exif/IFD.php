@@ -88,7 +88,15 @@ class IO_Exif_IFD {
         echo $indentSpace."OffsetTable:(count=".count($this->offsetTable).")".PHP_EOL;
         foreach ($this->offsetTable as $tagId => $tagOffset) {
 
-            echo $indentSpace2.$tagId.":".$tagOffset.PHP_EOL;
+            echo $indentSpace2;
+            $tagIdHex = sprintf("0x%04X", $tagId);
+            if (empty($opts['name'])) {
+                echo "$tagIdHex:";
+            } else {
+                $tagName = IO_Exif_Tag::getTagName($tagId);
+                echo "$tagIdHex($tagName):";
+            }
+            echo $tagOffset.PHP_EOL;
         }
     }
     static function baseOffsetComp($ifd1, $ifd2) {

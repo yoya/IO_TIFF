@@ -172,7 +172,7 @@ class IO_Exif_Tag {
         return $elementSizeTable;
     }
     static function getTagName($id) {
-        $tagNameTable = $ths->getTagNameTable;
+        $tagNameTable = self::getTagNameTable();
         if (isset($tagNameTable[$id])) {
             return $tagNameTable[$id];
         }

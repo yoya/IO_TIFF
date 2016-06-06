@@ -35,17 +35,22 @@ class IO_Exif_IFD {
             $tagType  = $bit->getSHORT();
             $tagCount = $bit->getLONG();
             $tagOffset = $bit->getLONG();
-            // echo "tag: $tagNo $tagType $tagCount\n";
-            $tagTable[$tagNo] = $tagOffset;
-            //
             $valueSize = $elementSizeTable[$tagType] * $tagCount;
+            // echo "tag: $tagNo $tagType $tagCount\n";
+            $tagTable[$tagNo] = [ 'id' => $tagNo, 'type' => $tagType, 'count' => $tagCount, 'offset' => $tagOffset];
+            //
             if (($valueSize > 4) && (isset($IFDNameTable[$tagNo]) === false)) {
                 // echo "{$this->ifdName}: $tagOffset : $valueSize : " . ($tagOffset + $valueSize) . "\n";
                 $eoff  = self::IFD_OFFSET_BASE + $tagOffset;
-                $esize = $eoff + $valueSize;
+                $oldOffset = $bit->getByteOffset();
+                $bit->setByteOffset($eoff);
+                $tagTable[$tagNo]['value'] = $bit->getData($valueSize);
+                $bit->setByteOffset($oldOffset);
+                //
                 if (($this->extendOffset === null) || ($eoff < $this->extendOffset)) {
                     $this->extendOffset = $eoff;
                 }
+                $esize = $eoff + $valueSize - $this->extendOffset;
                 if (($this->extendSize === null) || ($this->extendSize < $esize)) {
                     $this->extendSize = $esize;
                 }
@@ -57,9 +62,9 @@ class IO_Exif_IFD {
         foreach ($IFDNameTable as $tagNo => $tagName) {
             if (! empty($tagTable[$tagNo])) {
                 // echo "XXX: $tagName\n";
-                $tagOffset = $tagTable[$tagNo];
+                $tag = $tagTable[$tagNo];
                 if ($tagOffset > 0) {
-                    $ifdList += IO_Exif_IFD::Factory($bit, self::IFD_OFFSET_BASE + $tagOffset, $tagName);
+                    $ifdList += IO_Exif_IFD::Factory($bit, self::IFD_OFFSET_BASE + $tag['offset'], $tagName);
                 }
             }
         }
@@ -86,7 +91,7 @@ class IO_Exif_IFD {
         echo $indentSpace."ExtendOffset:".$this->extendOffset." ";
         echo "ExtendSize:".$this->extendSize.PHP_EOL;
         echo $indentSpace."TagTable:(count=".count($this->tagTable).")".PHP_EOL;
-        foreach ($this->tagTable as $tagId => $tagOffset) {
+        foreach ($this->tagTable as $tagId => $tag) {
             echo $indentSpace2;
             $tagIdHex = sprintf("0x%04X", $tagId);
             if (empty($opts['name'])) {
@@ -95,7 +100,11 @@ class IO_Exif_IFD {
                 $tagName = IO_Exif_Tag::getTagName($tagId);
                 echo "$tagIdHex($tagName):";
             }
-            echo $tagOffset.PHP_EOL;
+            echo $tag['offset'];
+            if (isset($tag['value'])) {
+                echo ":".$tag['value'];
+            }
+            echo PHP_EOL;
         }
     }
     static function baseOffsetComp($ifd1, $ifd2) {

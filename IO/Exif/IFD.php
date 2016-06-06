@@ -69,8 +69,8 @@ class IO_Exif_IFD {
         return $ifdList;
     }
     function build($bit) {
-        $this->setByteOffset($this->baseOffset, true);
-        if ($modified === false) {
+        $bit->setByteOffset($this->baseOffset, true);
+        if ($this->modified === false) {
             ;
         }
 

@@ -54,7 +54,7 @@ class IO_Exif {
         IO_Exif_IFD::sortIFDsByBaseOffset($this->IFDs);
     }
     function build() {
-        $bit = new IO_Bit();
+        $bit = new IO_Exif_Bit();
         $bit->putData("Exif\0\0");
         $bit->setByteOrder($this->byteOrder);
         switch ($this->byteOrder) {
@@ -69,9 +69,13 @@ class IO_Exif {
         }
         $bit->putData($byteOrderId);
         $bit->putSHORT(0x002A); // TIFF version
+        $IFD0thOffset = self::IFD_OFFSET_BASE + 8;
+        $bit->putLONG($IFD0thOffset);
+
         foreach ($this->IFDs as $ifd)  {
             $ifd->build($bit);
         }
+        return $bit->output();
     }
     function dump($opts = array()) {
         foreach ($this->IFDs as $ifdName => $offsetTable) {

@@ -153,15 +153,6 @@ class IO_Exif_Tag {
              ];
         return $tagNameTable;
     }
-    static function getIFDNameTable() {
-        static $IFDNameTable =
-            [
-             0x8825 => 'GPSInfo',
-             0x8769 => 'Exif',
-             0xA005 => 'Interoperability',
-             ];
-        return $IFDNameTable;
-    }
     static function getElementSizeTable() {
         static $elementSizeTable =
             [ /*BYTE*/     1 => 1,

@@ -23,12 +23,21 @@ class IO_Exif_IFD {
         $additionalIFD = $ifd->makeTagTable($bit, $baseOffset);
         return [$ifdName => $ifd] +  $additionalIFD;
     }
+    static function getIFDNameTable() {
+        static $IFDNameTable =
+            [
+             0x8825 => 'GPSInfo',
+             0x8769 => 'Exif',
+             0xA005 => 'Interoperability',
+             ];
+        return $IFDNameTable;
+    }
     function makeTagTable($bit, $baseOffset) {
         $this->baseOffset = $baseOffset;
         $bit->setByteOffset($baseOffset);
         $nTags = $bit->getSHORT();
         $tagTable = array();
-        $IFDNameTable = IO_Exif_Tag::getIFDNameTable();
+        $IFDNameTable = self::getIFDNameTable();
         $elementSizeTable = IO_Exif_Tag::getElementSizetable();
         for ($i = 0 ; $i < $nTags ; $i++) {
             $tagNo    = $bit->getSHORT();

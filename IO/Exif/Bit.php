@@ -147,4 +147,14 @@ class IO_Exif_Bit extends IO_Bit {
             $this->putSI32LE($v[1]);
         }
     }
+    /*
+     * etc
+     */
+    function alignNBytes($nBytes) {
+        $byteOffset = $this->getByteOffset();
+        $n = $byteOffset % $nBytes;
+        if ($n > 0) {
+            $this->putData(str_repeat("\0", $nBytes - $n));
+        }
+    }
 }

@@ -31,6 +31,12 @@ class IO_Exif_IFD {
              ];
         return $IFDNameTable;
     }
+    static function baseOffsetComp($ifd1, $ifd2) {
+        return ($ifd1->baseOffset > $ifd2->baseOffset)?1:-1;
+    }
+    static function sortIFDsByBaseOffset(&$IFDs) {
+        uasort($IFDs, "self::baseOffsetComp");
+    }
     function makeTagTable($bit, $baseOffset) {
         $this->baseOffset = $baseOffset;
         $bit->setByteOffset($baseOffset);
@@ -82,8 +88,14 @@ class IO_Exif_IFD {
         return $ifdList;
     }
     function build($bit) {
+        $bit->alignNBytes(2);
+        $baseOffset = $bit->getByteOffset();
+        $nTags = count($this->tagTable);
+        $bit->putSHORT($nTags);
         foreach ($this->tagTable as $offsetEntry) {
+            ;
         }
+        throw new Exception("Not implemented yet!");
     }
     function dump($opts) {
         $indent = $opts['indent'];
@@ -110,10 +122,18 @@ class IO_Exif_IFD {
             echo PHP_EOL;
         }
     }
-    static function baseOffsetComp($ifd1, $ifd2) {
-        return ($ifd1->baseOffset > $ifd2->baseOffset)?1:-1;
-    }
-    static function sortIFDsByBaseOffset(&$IFDs) {
-        uasort($IFDs, "self::baseOffsetComp");
+    function renumberTagTableOffset($baseOffset) {
+        // [nTags] + count * ([tagNo] + [tagType] + [tagCount] + [tagOffset])
+        $baseSize = 2 + count($this->tagTable) * (2+2+4+4);
+        $extendOffset = $baseOffset + $baseSize;
+        $extendSize = 0;
+        foreach ($this->tagTable as $tagId => $tag) {
+            ;
+        }        
+        //
+        $this->baseOffset = $baseOffset;
+        $this->baseSize = $baseSize;
+        $this->extendOffset = $extendOffset;
+        $this->baseSize = $baseSize;
     }
 }

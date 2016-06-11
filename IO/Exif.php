@@ -84,6 +84,7 @@ class IO_Exif {
                 $bit->setByteOffset($ifd->baseOffset, true);
                 $bit->putData($baseAndExtendData);
             } else {
+                $ifd->renumberTagTableOffset($baseOffset);
                 $ifd->build($bit);
             }
             $bit->alignNBytes(2);

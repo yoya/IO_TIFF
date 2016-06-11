@@ -16,7 +16,6 @@ class IO_Exif_IFD {
     var $extendSize = null;
     var $tagTable = null;
     var $modified = false;
-    var $offsetDelta = 0;
     static function Factory($bit, $baseOffset, $ifdName) {
         $ifd = new IO_Exif_IFD();
         $ifd->ifdName = $ifdName;
@@ -116,12 +115,5 @@ class IO_Exif_IFD {
     }
     static function sortIFDsByBaseOffset(&$IFDs) {
         uasort($IFDs, "self::baseOffsetComp");
-    }
-    function moveOffset($offsetDelta) {
-        if ($offsetDelta != 0) {
-            $modified = true;
-        } else {
-            $this->offsetDelta = $offsetDelta;
-        }
     }
 }

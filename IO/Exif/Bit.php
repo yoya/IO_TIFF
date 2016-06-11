@@ -26,7 +26,7 @@ class IO_Exif_Bit extends IO_Bit {
             $dataSize = strlen($this->_data);
             if ($dataSize < $offset) {
                 $this->setOffset($dataSize, 0);
-                $this->putData(str_repeat(" ", $offset - $dataSize));
+                $this->putData(str_repeat("\0", $offset - $dataSize));
             }
         }
     }

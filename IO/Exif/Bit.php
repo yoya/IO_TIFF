@@ -20,10 +20,10 @@ class IO_Exif_Bit extends IO_Bit {
             $this->setOffset($offset, 0);
         } else {
             $byteOffset = $this->getByteOffset();
-            $dataSize = strlen($this->_data);
             if ($offset < $byteOffset) {
                 throw new Exception("setByteOffset: offset:$offset < byteOffset:$byteOffset");
             }
+            $dataSize = strlen($this->_data);
             if ($dataSize < $offset) {
                 $this->setOffset($dataSize, 0);
                 $this->putData(str_repeat(" ", $offset - $dataSize));

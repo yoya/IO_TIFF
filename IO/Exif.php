@@ -69,11 +69,24 @@ class IO_Exif {
         }
         $bit->putData($byteOrderId);
         $bit->putSHORT(0x002A); // TIFF version
-        $IFD0thOffset = self::IFD_OFFSET_BASE + 8;
-        $bit->putLONG($IFD0thOffset);
-
+        $bit->putLONG(self::IFD_OFFSET_BASE + 2);
+        $rebuild = false;
         foreach ($this->IFDs as $ifd)  {
-            $ifd->build($bit);
+            if (($ifd->modified === true) ||
+                ($bit->getByteOffset() < $ifd->baseOffset)) {
+                // 変更のあるタグがあった場合、オフセットが後ろに続かない場合
+                // その後ろは全部バイナリを再構築する
+                $rebuild = true;
+            }
+            if ($rebuild === false) {
+                $baseAndExtendLength = ($ifd->extendOffset + $ifd->extendSize) - $ifd->baseOffset;
+                $baseAndExtendData = substr($this->exifData, $ifd->baseOffset, $baseAndExtendLength);
+                $bit->setByteOffset($ifd->baseOffset, true);
+                $bit->putData($baseAndExtendData);
+            } else {
+                $ifd->build($bit);
+            }
+            $bit->alignNBytes(2);
         }
         return $bit->output();
     }

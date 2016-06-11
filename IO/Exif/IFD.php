@@ -83,11 +83,6 @@ class IO_Exif_IFD {
         return $ifdList;
     }
     function build($bit) {
-        $bit->setByteOffset($this->baseOffset, true);
-        if ($this->modified === false) {
-            ;
-        }
-
         foreach ($this->tagTable as $offsetEntry) {
         }
     }

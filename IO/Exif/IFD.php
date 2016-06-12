@@ -48,37 +48,44 @@ class IO_Exif_IFD {
             $tagNo    = $bit->getSHORT();
             $tagType  = $bit->getSHORT();
             $tagCount = $bit->getLONG();
-            $tagOffset = $bit->getLONG();
-            $valueSize = $elementSizeTable[$tagType] * $tagCount;
+
+            $tagOffset = null;
+            $tagData = null;
+            $dataSize = IO_Exif_Tag::getDataSize($tagType, $tagCount);
             // echo "tag: $tagNo $tagType $tagCount\n";
-            $tagTable[$tagNo] = [ 'id' => $tagNo, 'type' => $tagType, 'count' => $tagCount, 'offset' => $tagOffset];
-            //
-            if (($valueSize > 4) && (isset($IFDNameTable[$tagNo]) === false)) {
-                // echo "{$this->ifdName}: $tagOffset : $valueSize : " . ($tagOffset + $valueSize) . "\n";
+            if ($dataSize <= 4) {
+                if (isset($IFDNameTable[$tagNo]) === true) {
+                    $tagOffset = $bit->getLONG();
+                } else {
+                    $tagData = substr($bit->getData(4), 0, $dataSize);
+                }
+            } else {
+                $tagOffset = $bit->getLONG();
+                // echo "{$this->ifdName}: $tagOffset : $dataSize : " . ($tagOffset + $dataSize) . "\n";
                 $eoff  = self::IFD_OFFSET_BASE + $tagOffset;
                 $oldOffset = $bit->getByteOffset();
                 $bit->setByteOffset($eoff);
-                $tagTable[$tagNo]['value'] = $bit->getData($valueSize);
+                $tagData = $bit->getData($dataSize);
                 $bit->setByteOffset($oldOffset);
                 //
                 if (($this->extendOffset === null) || ($eoff < $this->extendOffset)) {
                     $this->extendOffset = $eoff;
                 }
-                $esize = $eoff + $valueSize - $this->extendOffset;
+                $esize = $eoff + $dataSize - $this->extendOffset;
                 if (($this->extendSize === null) || ($this->extendSize < $esize)) {
                     $this->extendSize = $esize;
                 }
             }
+            $tagTable[$tagNo] = IO_Exif_Tag::Factory($tagType, $tagCount, $tagOffset, $tagData, $bit->getByteOrder());
         }
         $nextOffset = $bit->getByteOffset(); // offset save
         $ifdList = array();
-
         foreach ($IFDNameTable as $tagNo => $tagName) {
             if (! empty($tagTable[$tagNo])) {
                 // echo "XXX: $tagName\n";
                 $tag = $tagTable[$tagNo];
-                if ($tagOffset > 0) {
-                    $ifdList += IO_Exif_IFD::Factory($bit, self::IFD_OFFSET_BASE + $tag['offset'], $tagName);
+                if ($tag->offset > 0) {
+                    $ifdList += IO_Exif_IFD::Factory($bit, self::IFD_OFFSET_BASE + $tag->offset, $tagName);
                 }
             }
         }
@@ -115,11 +122,7 @@ class IO_Exif_IFD {
                 $tagName = IO_Exif_Tag::getTagName($tagId);
                 echo "$tagIdHex($tagName):";
             }
-            echo $tag['offset'];
-            if (isset($tag['value'])) {
-                echo ":".$tag['value'];
-            }
-            echo PHP_EOL;
+            $tag->dump($opts);
         }
     }
     function renumberTagTableOffset($baseOffset) {
@@ -127,7 +130,7 @@ class IO_Exif_IFD {
         $baseSize = 2 + count($this->tagTable) * (2+2+4+4);
         $extendOffset = $baseOffset + $baseSize;
         $extendSize = 0;
-        foreach ($this->tagTable as $tagId => $tag) {
+        foreach ($this->tagTable as $tag) {
             ;
         }        
         //

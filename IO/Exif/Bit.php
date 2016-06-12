@@ -11,6 +11,9 @@ class IO_Exif_Bit extends IO_Bit {
     function setByteOrder($byteOrder) {
         $this->byteOrder = $byteOrder;
     }
+    function getByteOrder() {
+        return $this->byteOrder;
+    }
     function getByteOffset() {
         list($byteOffset, $bitOffset) = $this->getOffset();
         return $byteOffset;

@@ -5,6 +5,89 @@
  */
 
 class IO_Exif_Tag {
+    var $type, $count, $offset, $data;
+    static function Factory($tagType, $tagCount, $tagOffset, $tagData, $byteOrder) {
+        // echo "Factory: $tagType, $tagCount, $tagOffset, $tagData, $byteOrder\n";
+        $tag = new IO_Exif_Tag();
+        $tag->type = $tagType;
+        $tag->count = $tagCount;
+        $tag->offset = $tagOffset;
+        if ($tagData === null) {
+            $tag->data = null;
+        } else {
+            if (($tagType === 2 /*ASCII*/) ||
+                ($tagType === 7 /*UNDEFINED*/)) {
+                $data = $tagData;
+            } else {
+                $bit = new IO_Exif_Bit();
+                $bit->input($tagData);
+                $bit->getByteOrder($byteOrder);
+                $data = array();
+                for ($i = 0 ; $i < $tagCount ; $i++) {
+                    switch ($tagType) {
+                    case 1: // "BYTE"
+                        $d = $bit->getBYTE();
+                        break;
+                    case 3: // "SHORT"
+                        $d = $bit->getBYTE();
+                        break;
+                    case 4: // "LONG"
+                        $d = $bit->getLONG();
+                        break;
+                    case 5: // "RATIONAL"
+                        $d = $bit->getRATIONAL();
+                        break;
+                    case 9: // "SLONG"
+                        $d = $bit->getSLONG();
+                        break;
+                    case 10: // "SRATIONAL"
+                        $d = $bit->getSRATIONAL();
+                        break;
+                    default:
+                        throw new Exception("Unknown tag type:$tagType");
+                    }
+                    $data []= $d;
+                }
+            }
+            $tag->data = $data;
+        }
+        return $tag;
+    }
+    function dump($opts) {
+        $type = $this->type;
+        $offset = $this->offset;
+        $data = $this->data;
+        //
+        $tagTypeNameTable = self::getTypeNameTable();
+        $typeStr = $tagTypeNameTable[$type];
+        echo " Type:$typeStr Count:".$this->count;
+        if ($offset !== null) {
+            echo " Offset:".$offset;
+        }
+        if ($data !== null) {
+            echo " Data:";
+            if (is_array($data)) {
+                foreach ($data as $i => $d) {
+                    echo " [$i]";
+                    if (is_array($d)) {
+                        echo $d[0]."/".$d[1]."=".($d[0]/$d[1]);
+                    } else {
+                        echo $d;
+                    }
+                }
+            } else {
+                echo $data;
+            }
+        }
+        echo PHP_EOL;
+    }
+    static function getDataSize($type, $count) {
+        $elementSizeTable = self::getElementSizeTable();
+        if (isset($elementSizeTable[$type]) === false) {
+            throw new Exception("unknown type $type");
+        }
+        return $elementSizeTable[$type] * $count;
+    }
     static function getTagNameTable() {
         // ref) http://www.vieas.com/exif23.html
         static $tagNameTable =
@@ -161,6 +244,15 @@ class IO_Exif_Tag {
               /*LONG*/     4 => 4, /*SLONG*/      9 => 4,
               /*RATIONAL*/ 5 => 8, /*SRATIONAL*/ 10 => 8 ];
         return $elementSizeTable;
+    }
+    static function getTypeNameTable() {
+        static $tagTypeNameTable =
+            [ 1 => "BYTE"    ,
+              2 => "ASCII"   ,  7 => "UNDEFINED",
+              3 => "SHORT"   ,
+              4 => "LONG"    ,  9 => "SLONG"    ,
+              5 => "RATIONAL", 10 => "SRATIONAL"  ];
+        return $tagTypeNameTable;
     }
     static function getTagName($id) {
         $tagNameTable = self::getTagNameTable();

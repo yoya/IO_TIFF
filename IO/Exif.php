@@ -92,6 +92,12 @@ class IO_Exif {
         return $bit->output();
     }
     function dump($opts = array()) {
+        if ($this->byteOrder == 1) {
+            echo "MM:BigEndian\n";
+        } else {
+            echo "LL:LittleEndian\n";
+        }
+        echo "TiffVersion: 0x002A\n";
         foreach ($this->IFDs as $ifdName => $offsetTable) {
             echo "IFD:$ifdName".PHP_EOL;
             $opts += ['indent' => 1];

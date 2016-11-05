@@ -43,6 +43,12 @@ class IO_TIFF_Tag {
                     case 10: // "SRATIONAL"
                         $d = $bit->getSRATIONAL();
                         break;
+                    case 11: // "FLOAT"
+                        $d = $bit->getFLOAT();
+                        break;
+                    case 12: // "DOUBLE"
+                        $d = $bit->getDOUBLE();
+                        break;
                     default:
                         throw new Exception("Unknown tag type:$tagType");
                     }
@@ -242,7 +248,8 @@ class IO_TIFF_Tag {
               /*ASCII*/    2 => 1, /*UNDEFINED*/  7 => 1,
               /*SHORT*/    3 => 2,
               /*LONG*/     4 => 4, /*SLONG*/      9 => 4,
-              /*RATIONAL*/ 5 => 8, /*SRATIONAL*/ 10 => 8 ];
+              /*RATIONAL*/ 5 => 8, /*SRATIONAL*/ 10 => 8,
+              /*FLOAT*/   11 => 4, /*DOUBLE*/    12 => 8, ];
         return $elementSizeTable;
     }
     static function getTypeNameTable() {
@@ -251,7 +258,8 @@ class IO_TIFF_Tag {
               2 => "ASCII"   ,  7 => "UNDEFINED",
               3 => "SHORT"   ,
               4 => "LONG"    ,  9 => "SLONG"    ,
-              5 => "RATIONAL", 10 => "SRATIONAL"  ];
+              5 => "RATIONAL", 10 => "SRATIONAL",
+              11 => "FLOAT"  , 12 => "DOUBLE", ];
         return $tagTypeNameTable;
     }
     static function getTagName($id) {

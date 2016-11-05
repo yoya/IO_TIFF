@@ -91,6 +91,20 @@ class IO_TIFF_Bit extends IO_Bit {
         }
         return [$numer, $denom];
     }
+    // type:11
+    function getFLOAT() {
+        if ($this->byteOrder === 1) {
+            return $this->getSI32BE();
+        }
+        return $this->getSI32LE();
+    }
+    // type:12
+    function getDOUBLE() {
+        if ($this->byteOrder === 1) {
+            return $this->getSI64BE();
+        }
+        return $this->getSI64LE();
+    }
     /*
      * put function
      */
@@ -148,6 +162,22 @@ class IO_TIFF_Bit extends IO_Bit {
         } else {
             $this->putSI32LE($v[0]);
             $this->putSI32LE($v[1]);
+        }
+    }
+    // type:11
+    function putFLOAT($v) {
+        if ($this->byteOrder === 1) {
+            $this->putSI32BE($v);
+        } else {
+            $this->putSI32LE($v);
+        }
+    }
+    // type:12
+    function putDOUBLE($v) {
+        if ($this->byteOrder === 1) {
+            $this->putSI64BE($v);
+        } else {
+            $this->putSI64LE($v);
         }
     }
     /*

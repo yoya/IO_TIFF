@@ -2,11 +2,11 @@
 
 require_once 'IO/TIFF.php';
 
-$options = getopt("f:hnv");
+$options = getopt("f:hnvO");
 
 function usage() {
-    fprintf(STDERR, "Usage: php tiffdump.php -f <tiff_file> [-n] [-h] [-v]\n");
-    fprintf(STDERR, "ex) php tiffdump.php -f test.tiff -hnv \n");
+    fprintf(STDERR, "Usage: php tiffdump.php -f <tiff_file> [-n] [-h] [-v] [-O]\n");
+    fprintf(STDERR, "ex) php tiffdump.php -f test.tiff -hnvO \n");
 }
 
 if (isset($options['f']) === false) {
@@ -34,5 +34,6 @@ if (isset($options['n'])) {
 if (isset($options['v'])) {
     $opts['verbose'] = true;
 }
+$opts['omit'] = (! isset($options['O']));
 
 $tiff->dump($opts);

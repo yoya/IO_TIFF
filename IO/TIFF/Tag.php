@@ -73,12 +73,19 @@ class IO_TIFF_Tag {
         if ($data !== null) {
             echo " Data:";
             if (is_array($data)) {
+                $n = count($data);
                 foreach ($data as $i => $d) {
-                    echo " [$i]";
-                    if (is_array($d)) {
-                        echo $d[0]."/".$d[1]."=".($d[0]/$d[1]);
+                    if ($opts['omit'] && (16 < $i) && ($i < ($n - 16))) {
+                        if ($i === 17) {
+                            echo " ...";
+                        }
                     } else {
-                        echo $d;
+                        echo " [$i]";
+                        if (is_array($d)) {
+                            echo $d[0]."/".$d[1]."=".($d[0]/$d[1]);
+                        } else {
+                            echo $d;
+                        }
                     }
                 }
             } else {

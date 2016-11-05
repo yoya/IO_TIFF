@@ -9,7 +9,6 @@ require_once 'IO/TIFF/Tag.php';
 
 class IO_TIFF_IFD {
     var $ifdName = null;
-    const IFD_OFFSET_BASE = 6;
     var $baseOffset = null;
     var $baseSize = null;
     var $extendOffset = null;
@@ -62,7 +61,7 @@ class IO_TIFF_IFD {
             } else {
                 $tagOffset = $bit->getLONG();
                 // echo "{$this->ifdName}: $tagOffset : $dataSize : " . ($tagOffset + $dataSize) . "\n";
-                $eoff  = self::IFD_OFFSET_BASE + $tagOffset;
+                $eoff  = $tagOffset;
                 $oldOffset = $bit->getByteOffset();
                 $bit->setByteOffset($eoff);
                 $tagData = $bit->getData($dataSize);
@@ -85,7 +84,7 @@ class IO_TIFF_IFD {
                 // echo "XXX: $tagName\n";
                 $tag = $tagTable[$tagNo];
                 if ($tag->offset > 0) {
-                    $ifdList += IO_TIFF_IFD::Factory($bit, self::IFD_OFFSET_BASE + $tag->offset, $tagName);
+                    $ifdList += IO_TIFF_IFD::Factory($bit, $tag->offset, $tagName);
                 }
             }
         }

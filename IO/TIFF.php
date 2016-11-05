@@ -13,14 +13,17 @@ class IO_TIFF {
     var $byteOrder = null; // 1:Big Endian(MM), 2:LittleEndian(II)
     var $IFDs = null;
     var $IFDRemoveList = array();
-    const IFD_OFFSET_BASE = 6;
     function parse($tiffData) {
         $this->tiffData  = $tiffData;
         $bit = new IO_TIFF_Bit();
-        $bit->input($tiffData);
         // Head Binary Check
-        $head6 = $bit->getData(6);
-        if ($head6 != "Exif\0\0") {
+        $head2 = substr($tiffData, 0, 2);
+        $head6 = substr($tiffData, 0, 2);
+        if ($head2 == "II" || $head2 == "MM") { // TIFF format
+            $bit->input($tiffData);
+        } else if ($head6 != "Exif\0\0") { // Exif format
+            $bit->input(substr($tiffData, 6));
+        } else {
             throw new Exception("Unknown head 6 byte: $head6");
             return false;
         }
@@ -42,11 +45,11 @@ class IO_TIFF {
         }
         $this->IFDs = array();
         $IFD0thOffset = $bit->getLONG();
-        $ifdTable = IO_TIFF_IFD::Factory($bit, self::IFD_OFFSET_BASE + $IFD0thOffset, "0th");
+        $ifdTable = IO_TIFF_IFD::Factory($bit, $IFD0thOffset, "0th");
         $this->IFDs += $ifdTable;
         $IFD1thOffset = $bit->getLONG();
         if ($IFD1thOffset > 0) {
-            $ifdTable = IO_TIFF_IFD::Factory($bit, self::IFD_OFFSET_BASE + $IFD1thOffset, "1th");
+            $ifdTable = IO_TIFF_IFD::Factory($bit, $IFD1thOffset, "1th");
             $this->IFDs += $ifdTable;
         }
         IO_TIFF_IFD::sortIFDsByBaseOffset($this->IFDs);
@@ -67,7 +70,7 @@ class IO_TIFF {
         }
         $bit->putData($byteOrderId);
         $bit->putSHORT(0x002A); // TIFF version
-        $bit->putLONG(self::IFD_OFFSET_BASE + 2);
+        $bit->putLONG(8);
         $rebuild = false;
         foreach ($this->IFDs as $ifd)  {
             if (($ifd->modified === true) ||

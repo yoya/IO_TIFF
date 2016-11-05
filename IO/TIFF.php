@@ -19,10 +19,10 @@ class IO_TIFF {
         $bit = new IO_TIFF_Bit();
         // Head Binary Check
         $head2 = substr($tiffData, 0, 2);
-        $head6 = substr($tiffData, 0, 2);
-        if ($head2 == "II" || $head2 == "MM") { // TIFF format
+        $head6 = substr($tiffData, 0, 6);
+        if ($head2 === "II" || $head2 === "MM") { // TIFF format
             $bit->input($tiffData);
-        } else if ($head6 != "Exif\0\0") { // Exif format
+        } else if ($head6 === "Exif\0\0") { // Exif format
             $bit->input(substr($tiffData, 6));
         } else {
             throw new Exception("Unknown head 6 byte: $head6");
@@ -95,10 +95,11 @@ class IO_TIFF {
         return $bit->output();
     }
     function dump($opts = array()) {
+        echo "ByteOrder:";
         if ($this->byteOrder == 1) {
-            echo "MM:BigEndian\n";
+            echo "MM:(BigEndian)\n";
         } else {
-            echo "LL:LittleEndian\n";
+            echo "II(LittleEndian)\n";
         }
         printf("TIFFVersion:0x%04X\n", $this->tiffVersion);
         foreach ($this->IFDs as $ifdName => $offsetTable) {

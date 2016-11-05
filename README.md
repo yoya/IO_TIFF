@@ -1,5 +1,7 @@
 TIFF parser & builder.
 
+- acceptable format: TIFF, Exif
+
 # Usage
 
 ```

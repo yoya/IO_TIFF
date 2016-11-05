@@ -11,6 +11,7 @@ require_once 'IO/TIFF/IFD.php';
 class IO_TIFF {
     var $tiffData = null;
     var $byteOrder = null; // 1:Big Endian(MM), 2:LittleEndian(II)
+    var $tiffVersion = null;
     var $IFDs = null;
     var $IFDRemoveList = array();
     function parse($tiffData) {
@@ -43,6 +44,7 @@ class IO_TIFF {
         if ($tiffVersion !== 0x002A) {
             throw new Exception("Unknown TIFF version:0x".dechex($tiffVersion));
         }
+        $this->tiffVersion = $tiffVersion;
         $this->IFDs = array();
         $IFD0thOffset = $bit->getLONG();
         $ifdTable = IO_TIFF_IFD::Factory($bit, $IFD0thOffset, "0th");
@@ -98,7 +100,7 @@ class IO_TIFF {
         } else {
             echo "LL:LittleEndian\n";
         }
-        echo "TIFFVersion: 0x002A\n";
+        printf("TIFFVersion:0x%04X\n", $this->tiffVersion);
         foreach ($this->IFDs as $ifdName => $offsetTable) {
             echo "IFD:$ifdName".PHP_EOL;
             $opts += ['indent' => 1];

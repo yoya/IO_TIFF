@@ -4,11 +4,11 @@
  * 2016/5/23- (c) yoya@awm.jp
  */
 
-class IO_Exif_Tag {
+class IO_TIFF_Tag {
     var $type, $count, $offset, $data;
     static function Factory($tagType, $tagCount, $tagOffset, $tagData, $byteOrder) {
         // echo "Factory: $tagType, $tagCount, $tagOffset, $tagData, $byteOrder\n";
-        $tag = new IO_Exif_Tag();
+        $tag = new IO_TIFF_Tag();
         $tag->type = $tagType;
         $tag->count = $tagCount;
         $tag->offset = $tagOffset;
@@ -19,7 +19,7 @@ class IO_Exif_Tag {
                 ($tagType === 7 /*UNDEFINED*/)) {
                 $data = $tagData;
             } else {
-                $bit = new IO_Exif_Bit();
+                $bit = new IO_TIFF_Bit();
                 $bit->input($tagData);
                 $bit->getByteOrder($byteOrder);
                 $data = array();

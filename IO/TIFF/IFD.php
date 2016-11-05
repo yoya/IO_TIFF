@@ -4,10 +4,10 @@
  * 2016/5/22- (c) yoya@awm.jp
  */
 
-require_once 'IO/Exif/Bit.php';
-require_once 'IO/Exif/Tag.php';
+require_once 'IO/TIFF/Bit.php';
+require_once 'IO/TIFF/Tag.php';
 
-class IO_Exif_IFD {
+class IO_TIFF_IFD {
     var $ifdName = null;
     const IFD_OFFSET_BASE = 6;
     var $baseOffset = null;
@@ -17,7 +17,7 @@ class IO_Exif_IFD {
     var $tagTable = null;
     var $modified = false;
     static function Factory($bit, $baseOffset, $ifdName) {
-        $ifd = new IO_Exif_IFD();
+        $ifd = new IO_TIFF_IFD();
         $ifd->ifdName = $ifdName;
         $additionalIFD = $ifd->makeTagTable($bit, $baseOffset);
         return [$ifdName => $ifd] +  $additionalIFD;
@@ -43,7 +43,7 @@ class IO_Exif_IFD {
         $nTags = $bit->getSHORT();
         $tagTable = array();
         $IFDNameTable = self::getIFDNameTable();
-        $elementSizeTable = IO_Exif_Tag::getElementSizetable();
+        $elementSizeTable = IO_TIFF_Tag::getElementSizetable();
         for ($i = 0 ; $i < $nTags ; $i++) {
             $tagNo    = $bit->getSHORT();
             $tagType  = $bit->getSHORT();
@@ -51,7 +51,7 @@ class IO_Exif_IFD {
 
             $tagOffset = null;
             $tagData = null;
-            $dataSize = IO_Exif_Tag::getDataSize($tagType, $tagCount);
+            $dataSize = IO_TIFF_Tag::getDataSize($tagType, $tagCount);
             // echo "tag: $tagNo $tagType $tagCount\n";
             if ($dataSize <= 4) {
                 if (isset($IFDNameTable[$tagNo]) === true) {
@@ -76,7 +76,7 @@ class IO_Exif_IFD {
                     $this->extendSize = $esize;
                 }
             }
-            $tagTable[$tagNo] = IO_Exif_Tag::Factory($tagType, $tagCount, $tagOffset, $tagData, $bit->getByteOrder());
+            $tagTable[$tagNo] = IO_TIFF_Tag::Factory($tagType, $tagCount, $tagOffset, $tagData, $bit->getByteOrder());
         }
         $nextOffset = $bit->getByteOffset(); // offset save
         $ifdList = array();
@@ -85,7 +85,7 @@ class IO_Exif_IFD {
                 // echo "XXX: $tagName\n";
                 $tag = $tagTable[$tagNo];
                 if ($tag->offset > 0) {
-                    $ifdList += IO_Exif_IFD::Factory($bit, self::IFD_OFFSET_BASE + $tag->offset, $tagName);
+                    $ifdList += IO_TIFF_IFD::Factory($bit, self::IFD_OFFSET_BASE + $tag->offset, $tagName);
                 }
             }
         }
@@ -119,7 +119,7 @@ class IO_Exif_IFD {
             if (empty($opts['name'])) {
                 echo "$tagIdHex:";
             } else {
-                $tagName = IO_Exif_Tag::getTagName($tagId);
+                $tagName = IO_TIFF_Tag::getTagName($tagId);
                 echo "$tagIdHex($tagName):";
             }
             $tag->dump($opts);

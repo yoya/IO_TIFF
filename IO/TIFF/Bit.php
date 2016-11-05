@@ -6,7 +6,7 @@
 
 require_once 'IO/Bit.php';
 
-class IO_Exif_Bit extends IO_Bit {
+class IO_TIFF_Bit extends IO_Bit {
     var $byteOrder = null;
     function setByteOrder($byteOrder) {
         $this->byteOrder = $byteOrder;

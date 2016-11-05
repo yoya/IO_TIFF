@@ -4,22 +4,22 @@
  * 2016/5/22- (c) yoya@awm.jp
  */
 
-require_once 'IO/Exif/Bit.php';
-require_once 'IO/Exif/Tag.php';
-require_once 'IO/Exif/IFD.php';
+require_once 'IO/TIFF/Bit.php';
+require_once 'IO/TIFF/Tag.php';
+require_once 'IO/TIFF/IFD.php';
 
-class IO_Exif {
-    var $exifData = null;
+class IO_TIFF {
+    var $tiffData = null;
     var $byteOrder = null; // 1:Big Endian(MM), 2:LittleEndian(II)
     var $IFDs = null;
     var $IFDRemoveList = array();
     const IFD_OFFSET_BASE = 6;
-    function parse($exifData) {
+    function parse($tiffData) {
         $reader = new IO_Bit();
-        $reader->input($exifData);
-        $this->exifData  = $exifData;
-        $bit = new IO_Exif_Bit();
-        $bit->input($exifData);
+        $reader->input($tiffData);
+        $this->tiffData  = $tiffData;
+        $bit = new IO_TIFF_Bit();
+        $bit->input($tiffData);
         // Head Binary Check
         $head6 = $bit->getData(6);
         if ($head6 != "Exif\0\0") {
@@ -44,17 +44,17 @@ class IO_Exif {
         }
         $this->IFDs = array();
         $IFD0thOffset = $bit->getLONG();
-        $ifdTable = IO_Exif_IFD::Factory($bit, self::IFD_OFFSET_BASE + $IFD0thOffset, "0th");
+        $ifdTable = IO_TIFF_IFD::Factory($bit, self::IFD_OFFSET_BASE + $IFD0thOffset, "0th");
         $this->IFDs += $ifdTable;
         $IFD1thOffset = $bit->getLONG();
         if ($IFD1thOffset > 0) {
-            $ifdTable = IO_Exif_IFD::Factory($bit, self::IFD_OFFSET_BASE + $IFD1thOffset, "1th");
+            $ifdTable = IO_TIFF_IFD::Factory($bit, self::IFD_OFFSET_BASE + $IFD1thOffset, "1th");
             $this->IFDs += $ifdTable;
         }
-        IO_Exif_IFD::sortIFDsByBaseOffset($this->IFDs);
+        IO_TIFF_IFD::sortIFDsByBaseOffset($this->IFDs);
     }
     function build() {
-        $bit = new IO_Exif_Bit();
+        $bit = new IO_TIFF_Bit();
         $bit->putData("Exif\0\0");
         $bit->setByteOrder($this->byteOrder);
         switch ($this->byteOrder) {
@@ -80,7 +80,7 @@ class IO_Exif {
             }
             if ($rebuild === false) {
                 $baseAndExtendLength = ($ifd->extendOffset + $ifd->extendSize) - $ifd->baseOffset;
-                $baseAndExtendData = substr($this->exifData, $ifd->baseOffset, $baseAndExtendLength);
+                $baseAndExtendData = substr($this->tiffData, $ifd->baseOffset, $baseAndExtendLength);
                 $bit->setByteOffset($ifd->baseOffset, true);
                 $bit->putData($baseAndExtendData);
             } else {
@@ -97,7 +97,7 @@ class IO_Exif {
         } else {
             echo "LL:LittleEndian\n";
         }
-        echo "TiffVersion: 0x002A\n";
+        echo "TIFFVersion: 0x002A\n";
         foreach ($this->IFDs as $ifdName => $offsetTable) {
             echo "IFD:$ifdName".PHP_EOL;
             $opts += ['indent' => 1];

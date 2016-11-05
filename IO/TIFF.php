@@ -113,8 +113,3 @@ class IO_TIFF {
         $IFDRemoveList [$ifdName] = true;
     }
 }
-
-
-
-
-

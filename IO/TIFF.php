@@ -15,8 +15,6 @@ class IO_TIFF {
     var $IFDRemoveList = array();
     const IFD_OFFSET_BASE = 6;
     function parse($tiffData) {
-        $reader = new IO_Bit();
-        $reader->input($tiffData);
         $this->tiffData  = $tiffData;
         $bit = new IO_TIFF_Bit();
         $bit->input($tiffData);

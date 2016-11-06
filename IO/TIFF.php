@@ -27,20 +27,18 @@ class IO_TIFF {
         } else if ($head2 === "\xff\xd8") { // JPEG format
             $jpegBit = new IO_Bit();
             $jpegBit->input($tiffData);
-            $jpegBit->setOffset(2, 0);
+            $jpegBit->setOffset(2, 0); // skip SOI
             $found = false;
-            while ($jpegBit->getUI8() == 0xff) {
+            while ($jpegBit->getUI8() == 0xff) { // chunk marker
                 $marker2 = $jpegBit->getUI8();
-                var_dump($marker2);
-                if ($marker2 === 0xe1) {
-                    $found = true;
-                    // 8 = 2(JPEG chunk length field) + 6(Exif signature)
-                    $jpegBit->incrementOffset(8, 0); // seek to TIFF head
-                    break;
-                } else {
-                    $len = $jpegBit->getUI16BE();
-                    $jpegBit->incrementOffset($len - 2, 0);
+                $len = $jpegBit->getUI16BE();
+                if ($marker2 === 0xe1) { // APP1
+                    if ($jpegBit->getData(6) === "Exif\0\0") {
+                        $found = true;
+                        break;
+                    }
                 }
+                $jpegBit->incrementOffset($len - 2, 0);
             }
             list($offset, $dummy) = $jpegBit->getOffset();
             if ($found === false) {

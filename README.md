@@ -1,6 +1,6 @@
 TIFF parser & builder.
 
-- acceptable format: TIFF, Exif
+- acceptable format: TIFF, Exif, JPEG
 
 # Usage
 

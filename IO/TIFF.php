@@ -24,6 +24,29 @@ class IO_TIFF {
             $bit->input($tiffData);
         } else if ($head6 === "Exif\0\0") { // Exif format
             $bit->input(substr($tiffData, 6));
+        } else if ($head2 === "\xff\xd8") { // JPEG format
+            $jpegBit = new IO_Bit();
+            $jpegBit->input($tiffData);
+            $jpegBit->setOffset(2, 0);
+            $found = false;
+            while ($jpegBit->getUI8() == 0xff) {
+                $marker2 = $jpegBit->getUI8();
+                var_dump($marker2);
+                if ($marker2 === 0xe1) {
+                    $found = true;
+                    // 8 = 2(JPEG chunk length field) + 6(Exif signature)
+                    $jpegBit->incrementOffset(8, 0); // seek to TIFF head
+                    break;
+                } else {
+                    $len = $jpegBit->getUI16BE();
+                    $jpegBit->incrementOffset($len - 2, 0);
+                }
+            }
+            list($offset, $dummy) = $jpegBit->getOffset();
+            if ($found === false) {
+                throw new Exception("Illegal JPEG format. offset: $offset");
+            }
+            $bit->input(substr($tiffData, $offset));
         } else {
             throw new Exception("Unknown head 6 byte: $head6");
             return false;

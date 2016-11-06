@@ -8,6 +8,17 @@ require_once 'IO/Bit.php';
 
 class IO_TIFF_Bit extends IO_Bit {
     var $byteOrder = null;
+    var $ieeeByteOrder = null; // 1:Big Endian, 2:LittleEndian
+    function __construct() {
+        if (pack("f", 12) === "A@\0\0") {
+            $ieeeByteOrder = null; // 1:Big Endian, 2:LittleEndian
+            $this->ieeeByteOrder = 1; // 1:Big Endian
+        } else if (pack("f", 12) === "\0\0@A") {
+            $this->ieeeByteOrder = 2; // 2:LittleEndian
+        } else {
+            throw new Exception("Unknown Machine IEEE Byte Order\n");
+        }
+    }
     function setByteOrder($byteOrder) {
         $this->byteOrder = $byteOrder;
     }
@@ -93,17 +104,21 @@ class IO_TIFF_Bit extends IO_Bit {
     }
     // type:11
     function getFLOAT() {
-        if ($this->byteOrder === 1) {
-            return $this->getUI32BE();
+        $p = $this->getData(4);
+        if ($this->byteOrder != $this->ieeeByteOrder) {
+            $p = strrev($p);
         }
-        return $this->getUI32LE();
+        $u = unpack("f", $p);
+        return $u[1];
     }
     // type:12
     function getDOUBLE() {
-        if ($this->byteOrder === 1) {
-            return $this->getUI64BE();
+        $p = $this->getData(8);
+        if ($this->byteOrder != $this->ieeeByteOrder) {
+            $p = strrev($p);
         }
-        return $this->getUI64LE();
+        $u = unpack("d", $p);
+        return $u[1];
     }
     /*
      * put function
@@ -166,19 +181,19 @@ class IO_TIFF_Bit extends IO_Bit {
     }
     // type:11
     function putFLOAT($v) {
-        if ($this->byteOrder === 1) {
-            $this->putUI32BE($v);
-        } else {
-            $this->putUI32LE($v);
+        $p = pack("f", $v);
+        if ($this->byteOrder != $this->ieeeByteOrder) {
+            $p = strrev($p);
         }
+        $this->putData($p, 4);
     }
     // type:12
     function putDOUBLE($v) {
-        if ($this->byteOrder === 1) {
-            $this->putUI64BE($v);
-        } else {
-            $this->putUI64LE($v);
+        $p = pack("d", $v);
+        if ($this->byteOrder != $this->ieeeByteOrder) {
+            $p = strrev($p);
         }
+        $this->putData($p, 8);
     }
     /*
      * etc

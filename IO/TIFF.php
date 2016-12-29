@@ -117,7 +117,7 @@ class IO_TIFF {
         return $bit->output();
     }
     function dump($opts = array()) {
-        if (isset($opts['hexdump'])) {
+        if (! empty($opts['hexdump'])) {
             $bitin = new IO_Bit();
             $bitin->input($this->tiffData);
         }
@@ -128,7 +128,7 @@ class IO_TIFF {
             echo "II(LittleEndian)\n";
         }
         printf("TIFFVersion:0x%04X\n", $this->tiffVersion);
-        if (isset($opts['hexdump'])) {
+        if (! empty($opts['hexdump'])) {
             $bitin->hexdump(0, 8);
         }
         foreach ($this->IFDs as $ifdName => $offsetTable) {

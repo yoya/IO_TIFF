@@ -45,7 +45,7 @@ class IO_TIFF {
             if ($found === false) {
                 throw new Exception("Wrong JPEG format. offset: $offset");
             }
-            $bit->input(substr($tiffData, $offset));
+            $bit->input(substr($tiffData, $offset, $len - 2));
         } else {
             throw new Exception("Unknown head 6 byte: $head6");
             return false;
@@ -130,14 +130,28 @@ class IO_TIFF {
         printf("TIFFVersion:0x%04X\n", $this->tiffVersion);
         if (! empty($opts['hexdump'])) {
             $bitin->hexdump(0, 8);
+            $nextOffset = 8;
         }
         foreach ($this->IFDs as $ifdName => $offsetTable) {
             echo "IFD:$ifdName".PHP_EOL;
             $opts += ['indent' => 1];
             $offsetTable->dump($opts);
-            if (isset($opts['hexdump'])) {
-                $byteLength = $offsetTable->extendOffset + $offsetTable->extendSize - $offsetTable->baseOffset;
+            if (! empty($opts['hexdump'])) {
+                $baseOffset = $offsetTable->baseOffset;
+                if ($nextOffset < $baseOffset) {
+                    echo "(useless scape)".PHP_EOL;
+                    $bitin->hexdump($nextOffset);
+                }
+                $nextOffset = $offsetTable->extendOffset + $offsetTable->extendSize;
+                $byteLength = $nextOffset - $offsetTable->baseOffset;
                 $bitin->hexdump($offsetTable->baseOffset, $byteLength);
+            }
+        }
+        if (! empty($opts['hexdump'])) {
+            $tiffDataSize = strlen($this->tiffData);
+            if ($nextOffset < $tiffDataSize) {
+                echo "(useless scape)".PHP_EOL;
+                $bitin->hexdump($nextOffset, $tiffDataSize - $nextOffset);
             }
         }
     }

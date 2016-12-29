@@ -23,7 +23,8 @@ class IO_TIFF {
         if ($head2 === "II" || $head2 === "MM") { // TIFF format
             $bit->input($tiffData);
         } else if ($head6 === "Exif\0\0") { // Exif format
-            $bit->input(substr($tiffData, 6));
+            $this->$tiffData = $tiffData = substr($tiffData, 6);
+            $bit->input($tiffData);
         } else if ($head2 === "\xff\xd8") { // JPEG format
             $jpegBit = new IO_Bit();
             $jpegBit->input($tiffData);
@@ -116,6 +117,10 @@ class IO_TIFF {
         return $bit->output();
     }
     function dump($opts = array()) {
+        if (isset($opts['hexdump'])) {
+            $bitin = new IO_Bit();
+            $bitin->input($this->tiffData);
+        }
         echo "ByteOrder:";
         if ($this->byteOrder == 1) {
             echo "MM:(BigEndian)\n";
@@ -123,10 +128,17 @@ class IO_TIFF {
             echo "II(LittleEndian)\n";
         }
         printf("TIFFVersion:0x%04X\n", $this->tiffVersion);
+        if (isset($opts['hexdump'])) {
+            $bitin->hexdump(0, 8);
+        }
         foreach ($this->IFDs as $ifdName => $offsetTable) {
             echo "IFD:$ifdName".PHP_EOL;
             $opts += ['indent' => 1];
             $offsetTable->dump($opts);
+            if (isset($opts['hexdump'])) {
+                $byteLength = $offsetTable->extendOffset + $offsetTable->extendSize - $offsetTable->baseOffset;
+                $bitin->hexdump($offsetTable->baseOffset, $byteLength);
+            }
         }
     }
     function addIFDRemoveList(string $ifdName) {
